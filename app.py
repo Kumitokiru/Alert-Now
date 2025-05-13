@@ -97,5 +97,6 @@ def on_connect():
     emit("bulk_alerts", alerts)
 
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 5000))
-    socketio.run(app, host="0.0.0.0", port=port, debug=True)
+     import eventlet
+    eventlet.monkey_patch()
+    socketio.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
