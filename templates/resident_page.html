@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Resident – Alert Now</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    /* Full-screen flex container to center content */
+    /* Full-screen flex container to center content */
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;   /* center horizontally */
+      align-items: center;       /* center vertically */
+      background: #86e7ff;
+      position: relative;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Top-right Log Out button */
+    #logoutBtn {
+      position: absolute;
+      top: 20px;    /* adjust as needed */
+      right: 30px;  /* adjust as needed */
+      padding: 8px 14px;
+      background: #ff4d4d;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #logoutBtn:hover {
+      background: #e60000;
+    }
+
+    /* Central column wrapper */
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* no extra margins here */
+    }
+
+    /* Title spacing */
+    h1 {
+      margin-bottom: 50px;
+    }
+
+    /* Hide default file input */
+    input[type="file"] {
+      display: none;
+    }
+
+    /* Styled upload label */
+    .custom-file-upload {
+      display: inline-block;
+      padding: 10px 16px;
+      margin-bottom: 50px;
+      margin-left: 60px;
+      background: #007bff;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .custom-file-upload:hover {
+      background: #0056b3;
+    }
+
+    /* Circle button styling */
+    .circle-button {
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background: #ff4d4d;
+      color: #fff;
+      font-size: 24px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: background 0.3s;
+    }
+    .circle-button:hover {
+      background: #e60000;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Log Out stays at top-right -->
+  <button id="logoutBtn" onclick="location.href='/'">Log Out</button>
+  <!-- Centered content -->
+  <div class="container">
+    <h1>Resident Dashboard</h1>
+
+    <form id="alertForm" enctype="multipart/form-data">
+      <label for="imageInput" class="custom-file-upload">Upload Photo</label>
+      <input type="file" id="imageInput" name="image" accept="image/*">
+
+      <button type="button" id="alertBtn" class="circle-button">
+        Alert Now
+      </button>
+    </form>
+  </div>
+
+  <!-- Your existing JS (socket.io + geolocation + fetch) remains here -->
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script>
+    document.getElementById('alertBtn').addEventListener('click', () => {
+      const input = document.getElementById('imageInput');
+      const file  = input.files[0];
+      if (!navigator.geolocation) {
+        return alert('Geolocation not supported');
+      }
+      navigator.geolocation.getCurrentPosition(pos => {
+        const fd = new FormData();
+        fd.append('lat', pos.coords.latitude);
+        fd.append('lon', pos.coords.longitude);
+        if (file) fd.append('image', file);
+
+        fetch('/send_alert',{method:'POST',body:fd})
+          .then(r=>r.json())
+          .then(d=>{
+            alert(`Alert sent! Barangay: ${d.barangay}`);
+            // Clear the file input so old image won't persist
+            input.value = "";
+          })
+          .catch(console.error);
+      },err=>alert('Geo error: '+err.message));
+    });
+  </script>
+</body>
+</html>

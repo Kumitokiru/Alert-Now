@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PNP Dashboard – Alert Now</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link 
+    rel="stylesheet" 
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { margin-bottom: 10px; }
+    #logoutBtn {
+      position: absolute; top: 20px; right: 30px;
+      padding: 8px 12px; background: #ff4d4d; color: #fff;
+      border: none; border-radius: 4px; cursor: pointer;
+    }
+    #logoutBtn:hover { background: #e60000; }
+    .alert-card {
+      border: 1px solid #ccc; padding: 15px; margin-bottom: 15px;
+    }
+    .alert-card img { max-width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <h1>PNP Dashboard</h1>
+  <button id="logoutBtn" onclick="location.href='/'">Log Out</button>
+
+  <div id="alertsContainer">Waiting for alerts…</div>
+
+  <audio id="alertAudio"     src="{{ url_for('static', filename='Alert.mp3') }}"></audio>
+  <audio id="emergencyAudio" src="{{ url_for('static', filename='Emergency.mp3') }}"></audio>
+  <audio id="roadAudio"      src="{{ url_for('static', filename='Road Accident.mp3') }}"></audio>
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script>
+    const socket    = io();
+    const container = document.getElementById('alertsContainer');
+    const alertS    = document.getElementById('alertAudio');
+    const emS       = document.getElementById('emergencyAudio');
+    const roadS     = document.getElementById('roadAudio');
+
+    document.body.addEventListener('click', () => {
+      [alertS, emS].forEach(s => s.play().catch(()=>{}));
+    }, { once: true });
+
+    function renderAlert(a, play=false) {
+      const mapId     = 'map_' + a.timestamp.toString().replace('.', '_');
+      const photoHtml = a.image
+        ? `<p><strong>Photo:</strong><br><img src="/static/uploads/${a.image}" alt="User photo"></p>`
+        : '';
+      const card = document.createElement('div');
+      card.className = 'alert-card';
+      card.innerHTML = `
+        <p><strong>Barangay:</strong> ${a.barangay}</p>
+        <p><strong>Coordinates:</strong> ${a.lat.toFixed(6)}, ${a.lon.toFixed(6)}</p>
+        <div id="${mapId}" style="width:400px; height:300px;"></div>
+        ${photoHtml}
+      `;
+      container.prepend(card);
+
+      if (play) {
+        alertS.play();
+        if (a.alert_type === 'road_accident')      roadS.play();
+        else if (a.image)                          emS.play();
+      }
+
+      setTimeout(() => {
+        const map = L.map(mapId).setView([a.lat, a.lon], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        L.marker([a.lat, a.lon]).addTo(map);
+      }, 100);
+    }
+
+    socket.on('bulk_alerts', arr => {
+      container.innerHTML = '';
+      arr.forEach(a => renderAlert(a, false));
+    });
+    socket.on('new_alert', a => renderAlert(a, true));
+  </script>
+</body>
+</html>

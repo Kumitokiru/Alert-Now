@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login Type</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      text-align: center;
+      background: #f0f8ff;
+    }
+    h1 {
+      margin-bottom: 150px;
+    }
+
+    .login-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 auto;
+      width: 220px;            /* match button min-width */
+      display: flex;
+      flex-direction: column;   /* stack vertically */
+      align-items: stretch;     /* buttons fill the container width */
+      gap: 50px;                /* vertical spacing */
+    }
+
+    .login-list li {
+      margin: 0;
+    }
+
+    .login-btn {
+      padding: 12px 24px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      width: 100%;              /* fill the .login-list width */
+      box-sizing: border-box;   
+    }
+    .login-btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
+
+</head>
+<body>
+  <h1>Choose Login Type</h1>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+  <ul class="login-list">
+    <li><button class="login-btn" onclick="location.href='/resident'">Resident</button></li>
+    <li><button class="login-btn" onclick="location.href='/barangay'">Barangay Official</button></li>
+    <li><button class="login-btn" onclick="location.href='/cdrrmo'">CDRRMO</button></li>
+    <li><button class="login-btn" onclick="location.href='/pnp'">PNP</button></li>
+  </ul>
+</body>
+</html>
