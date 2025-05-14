@@ -32,13 +32,24 @@ def predict_barangay(lat, lon):
     return label_encoder.inverse_transform(idx)[0]
 
 # === Roboflow model for accidents ===
-rf = Roboflow(api_key="Evdj8YqGLC5At2Cu080d")
-project = rf.workspace().project("roadaccident")
-rf_model = project.version("1").model
+try:
+    rf = Roboflow(api_key="Evdj8YqGLC5At2Cu080d")
+    project = rf.workspace().project("roadaccident")
+    rf_model = project.version("1").model
+except Exception as e:
+    rf_model = None
+    print(f"[ERROR] Failed to initialize Roboflow model: {e}")
 
 def detect_accident(image_path):
-    res = rf_model.predict(image_path, confidence=40, overlap=30).json()
-    return any(obj["class"] == "road_accident" for obj in res["predictions"])
+    if rf_model is None:
+        print("[WARNING] Skipping accident detection – Roboflow unavailable.")
+        return False
+    try:
+        res = rf_model.predict(image_path, confidence=40, overlap=30).json()
+        return any(obj["class"] == "road_accident" for obj in res["predictions"])
+    except Exception as e:
+        print(f"[ERROR] Roboflow prediction failed: {e}")
+        return False
 
 # === In-memory alert store ===
 alerts = []
